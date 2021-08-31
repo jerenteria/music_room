@@ -4,6 +4,7 @@ from .serializers import RoomSerializer, CreateRoomSerializer
 from .models import Room
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import JsonResponse
 
 ## returns all of the current rooms
 class RoomView(generics.CreateAPIView):
@@ -76,4 +77,11 @@ class CreateRoomView(APIView):
                 return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
         return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
         
-
+class UserInRoom(APIView):
+    def get(self, request, format=None):
+        if not self.request.session.exists(self.request.session.session_key): ## make sure user has active session
+            self.request.session.create() ## if not create one for user
+        data = {
+            'code': self.request.session.get('room_code') ## gets info from user displaying what room theyre in
+        }
+        return JsonResponse(data, status=status.HTTP_200_OK)

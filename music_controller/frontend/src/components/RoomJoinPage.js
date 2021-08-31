@@ -30,7 +30,7 @@ export default class RoomJoinPage extends Component {
                     value={this.state.roomCode}
                     helperText={this.state.error}
                     variant="outlined"
-                    onChange={this._handleTextFieldChange}
+                    onChange={this.handleTextFieldChange}
                     />
                 </Grid>
                 <Grid items xs={12} align="center">
@@ -53,6 +53,22 @@ export default class RoomJoinPage extends Component {
     }
     
     roomButtonPressed() {
-        console.log(this.state.roomCode);
+        const requestOptions = {
+            method: "POST",
+            headers: {"Content-Type": "applications/json"},
+            body: JSON.stringify({ // data that is being sent
+                code: this.state.roomCode
+            })
+        };
+        fetch('/api/join-room', requestOptions).then((response) => {
+            if(response.ok) { // if you succesfully join room
+                this.props.history.push(`/room/${this.state.roomCode}`); // then redirect user to room with that same code
+            } else {
+                this.setState({error: "Room not found."}); // if its not okay then print error Room not found
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        });
     }
 }
