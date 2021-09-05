@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Grid, Button, Typography } from '@material-ui/core'
+import { Grid, Button, Typography } from '@material-ui/core';
+import CreateRoomPage from "./CreateRoomPage";
 
 export default class Room extends Component {
     constructor(props) {
@@ -8,14 +9,19 @@ export default class Room extends Component {
             votesToSkip: 2,
             guestCanPause: false,
             isHost: false,
+            showSettings: false,
         };
         this.roomCode = this.props.match.params.roomCode;
         this.getRoomDetails();
         this.leaveButtonPressed = this.leaveButtonPressed.bind(this);
+        this.updateShowSettings = this.updateShowSettings.bind(this);
+        this.renderSettingsButton = this.renderSettingsButton.bind(this);
+        this.renderSettings = this.renderSettings.bind(this);
+        this.getRoomDetails = this.getRoomDetails.bind(this);
     }
 
     getRoomDetails() {
-        fetch('/api/get-room' + '?code=' + this.roomCode)
+        fetch("/api/get-room" + "?code=" + this.roomCode)
         .then((response) => {
             if(!response.ok) {
                 this.props.leaveRoomCallBack();
@@ -37,13 +43,55 @@ export default class Room extends Component {
             method:"POST",
             headers: {'Content-Type': "application/json"},
         };
-        fetch(/api/leave-room, requestOptions).then((__response) => {
+        fetch("/api/leave-room" + requestOptions).then((__response) => {
             this.props.leaveRoomCallBack();
             this.props.history.push('/');
         });
     }
 
+
+    updateShowSettings(value) {
+        this.setState({
+            showSettings: value,
+        });
+    }
+    
+    renderSettings() {
+        return (
+        <Grid container spacing={1}>
+            <Grid items xs={12} align="center">
+                <CreateRoomPage
+                    update={true}
+                    votesToSkip={this.state.votesToSkip}
+                    guestCanPause={this.state.guestCanPause}
+                    roomCode={this.roomCode}
+                    updateCallBack={this.getRoomDetails}
+                />
+            </Grid>
+            <Grid items xs={12} align="center">
+            <Button variant="contained" color="secondary" onClick={() => this.updateShowSettings(false)}>
+                Close
+            </Button>
+            </Grid>
+        </Grid>
+        );
+    }
+
+    // have a method just for settings button so only the host of the room can see/access it 
+    renderSettingsButton() {
+        return (
+            <Grid items xs={12} align="center">
+                <Button variant="contained" color="primary" onClick={() => this.updateShowSettings(true)}>
+                    Settings
+                </Button>
+            </Grid>
+        );
+    }
+
     render() {
+        if (this.state.showSettings) {
+            return this.renderSettings();
+        }
         <Grid container spacing={1}>
             <Grid item xs={12} align="center">
                 <Typography variant="h6" component="h6">
@@ -65,6 +113,7 @@ export default class Room extends Component {
                 Host: {this.state.isHost.toString()}
                 </Typography>
             </Grid>
+            {this.state.isHost ? this.renderSettingsButton() : null} {/*if user is not a host then do not show settings button*/}
             <Grid item xs={12} align="center">
                 <Button variant="contained" color="secondary"n onClick={this.leaveButtonPressed}>
                     Leave Room
