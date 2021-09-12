@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'frontend.apps.FrontendConfig',
     'music_app.apps.MusicAppConfig',
     'rest_framework',
+    'spotify.apps.SpotifyConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

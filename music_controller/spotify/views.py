@@ -4,7 +4,8 @@ from rest_framework.views import APIView
 from requests import Request, post
 from rest_framework import status
 from rest_framework.response import Response
-from .util import update_or_create_user_tokens, is_spotify_authenticated
+from .util import *
+from music_app.models import Room\
 
 # Create your views here.
 
@@ -41,14 +42,25 @@ def spotify_callback(request, format=None):
     expires_in = response.get('expires_in')
     error = response.get('error')
 
-        if not request.session.exists(request.session.session_key):
-            request.session.create()
+    if not request.session.exists(request.session.session_key):
+        request.session.create()
 
     update_or_create_user_tokens(
         request.session.session_key, access_token, token_type, expires_in, refresh_token)
     return redirect('frontend:')
 
 class IsAuthenticated(APIView):
-    def get(self, request, format=None)
+    def get(self, request, format=None):
         is_authenticated = is_spotify_authenticated(self.request.session.session_key)
         return Response({'status': is_authenticated}, status=status.HTTP_200_OK)
+
+class CurrentSong(APIView):
+    def get(self, request, format=None):
+        room_code = self.request.session.get('room_code')
+        room = Room.objects.filter(code=room_code)[0]
+        host = room.host
+        endpoint = "/player/currently-playing"
+        response = execute_spotify_api_request(host, endpoint)
+        print(response)
+
+        return Response(response, status=status.HTTP_200_OK)
